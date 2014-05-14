@@ -1,0 +1,9 @@
+FROM        repo.nicescale.com:5000/nicescale_ubuntu_base
+RUN         groupadd mysql -g 3306
+RUN         useradd mysql -u 3306 -g mysql -M -d /nonexistent -s /bin/false
+RUN         apt-get update
+RUN         DEBIAN_FRONTEND=noninteractive apt-get -y install mysql-server-5.5
+ADD         ./docker_start.sh /docker_start.sh
+RUN         chmod 500 /docker_start.sh
+
+CMD         /docker_start.sh service mysql start

@@ -1,0 +1,87 @@
+#! /bin/bash
+### BEGIN INIT INFO
+# Provides:            memcached
+# Required-Start:      $remote_fs $syslog
+# Required-Stop:       $remote_fs $syslog
+# Should-Start:                $local_fs
+# Should-Stop:         $local_fs
+# Default-Start:       2 3 4 5
+# Default-Stop:                0 1 6
+# Short-Description:   Start memcached daemon
+# Description:         Start up memcached, a high-performance memory caching daemon
+### END INIT INFO
+
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+DAEMON=/usr/bin/memcached
+DAEMONNAME=memcached
+DESC=memcached
+NAME=memcached
+
+test -x $DAEMON || exit 0
+test -x $DAEMONBOOTSTRAP || exit 0
+
+set -e
+
+. /lib/lsb/init-functions
+
+# Edit /etc/default/memcached to change this.
+ENABLE_MEMCACHED=no
+test -r /etc/default/memcached && . /etc/default/memcached
+
+
+CONFIG=/etc/memcached/memcached.cfg
+. $CONFIG
+CMD="$DAEMON -p $port -m $mlimit $allowlru -d -u $user -P /tmp/memcached.pid"
+DAEMONBOOTSTRAP="/etc/memcached/start-memcached"
+echo "#!/bin/bash" > $DAEMONBOOTSTRAP
+echo $CMD >> $DAEMONBOOTSTRAP
+chmod 755 $DAEMONBOOTSTRAP
+
+case "$1" in
+  start)
+       echo -n "Starting $DESC: "
+       if [ $ENABLE_MEMCACHED = yes ]; then
+            start-stop-daemon --start --quiet --exec "$DAEMONBOOTSTRAP" 
+            sleep 1
+            [ -f /tmp/memcached.pid ] && mv /tmp/memcached.pid $pidfile
+            echo "$NAME."
+       else
+            echo "$NAME disabled in /etc/default/memcached."
+       fi
+       ;;
+  stop)
+       echo -n "Stopping $DESC: "
+       start-stop-daemon --stop --quiet --oknodo --retry 5 --pidfile $pidfile --exec $DAEMON
+       echo "$NAME."
+       rm -f $pidfile
+       ;;
+
+  restart|force-reload)
+       #
+       #       If the "reload" option is implemented, move the "force-reload"
+       #       option to the "reload" entry above. If not, "force-reload" is
+       #       just the same as "restart".
+       #
+       echo -n "Restarting $DESC: "
+       start-stop-daemon --stop --quiet --oknodo --retry 5 --pidfile $pidfile --exec $DAEMON
+       rm -f $pidfile
+       if [ $ENABLE_MEMCACHED = yes ]; then
+       		start-stop-daemon --start --quiet --exec "$DAEMONBOOTSTRAP"
+                sleep 1
+		[ -f /tmp/memcached.pid ] && mv /tmp/memcached.pid $pidfile
+       		echo "$NAME."
+       else
+            echo "$NAME disabled in /etc/default/memcached."
+       fi
+       ;;
+  status)
+       status_of_proc -p $pidfile $DAEMON $NAME  && exit 0 || exit $?
+       ;;
+  *)
+	N=/etc/init.d/$NAME
+	echo "Usage: $N {start|stop|restart|force-reload|status}" >&2
+	exit 1
+	;;
+esac
+
+exit 0

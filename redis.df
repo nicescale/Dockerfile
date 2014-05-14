@@ -1,0 +1,8 @@
+FROM        repo.nicescale.com:5000/nicescale_ubuntu_base
+RUN         groupadd redis -g 6379
+RUN         useradd redis -u 6379 -g redis -M -d /var/lib/redis -s /bin/false
+RUN         apt-get update
+RUN         apt-get -y install redis-server
+ADD         ./docker_start.sh /docker_start.sh
+RUN         chmod 500 /docker_start.sh
+CMD         /docker_start.sh service redis-server start
