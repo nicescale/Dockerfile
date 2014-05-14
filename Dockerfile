@@ -1,7 +1,7 @@
-FROM        127.0.0.1:5000/nicescale_ubuntu_base:1.2
-RUN         groupadd haproxy -g 80
-RUN         useradd haproxy -u 80 -g 80 -M -d /var/lib/haproxy -s /bin/false
+FROM        repo.nicescale.com:5000/nicescale_ubuntu_base
 RUN         apt-get update
 RUN         DEBIAN_FRONTEND=noninteractive apt-get -y install haproxy
+ADD         ./docker_start.sh /docker_start.sh
+RUN         chmod 500 /docker_start.sh
 
 CMD         /docker_start.sh service haproxy start
