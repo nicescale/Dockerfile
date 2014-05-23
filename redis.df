@@ -5,4 +5,6 @@ RUN         apt-get update
 RUN         apt-get -y install redis-server
 ADD         ./docker_start.sh /docker_start.sh
 RUN         chmod 500 /docker_start.sh
+EXPOSE      6379
+
 CMD         /docker_start.sh service redis-server start

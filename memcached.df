@@ -10,5 +10,6 @@ ADD         ./memcached /etc/init.d/memcached
 RUN         chmod 755 /etc/init.d/memcached
 ADD         ./docker_start.sh /docker_start.sh
 RUN         chmod 500 /docker_start.sh
+EXPOSE      11211
 
 CMD         /docker_start.sh service memcached start

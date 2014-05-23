@@ -1,7 +1,15 @@
 FROM        repo.nicescale.com:5000/nicescale_ubuntu_base
+RUN         groupadd memcache -g 11211
+RUN         useradd memcache -u 11211 -g memcache -M -d /nonexistent -s /bin/false
 RUN         apt-get update
-RUN         DEBIAN_FRONTEND=noninteractive apt-get -y install haproxy
+RUN         DEBIAN_FRONTEND=noninteractive apt-get -y install memcached
+RUN	    /bin/rm /etc/memcached.conf /etc/init.d/memcached
+RUN         mkdir /etc/memcached
+ADD	    ./memcached.cfg /etc/memcached/memcached.cfg
+ADD         ./memcached /etc/init.d/memcached
+RUN         chmod 755 /etc/init.d/memcached
 ADD         ./docker_start.sh /docker_start.sh
 RUN         chmod 500 /docker_start.sh
+EXPOSE      11211
 
-CMD         /docker_start.sh service haproxy start
+CMD         /docker_start.sh service memcached start

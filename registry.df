@@ -1,0 +1,11 @@
+FROM    registry
+ADD     ./docker_start.sh /docker_start.sh
+RUN     chmod   500 /docker_start.sh
+RUN     apt-get update
+# install rsync nginx for service init download/upload and ssl support
+RUN     apt-get -y install rsync nginx
+ADD     ./repo_rsyncd.conf /etc/rsyncd.conf
+RUN     sed -i 's/^RSYNC_ENABLE.*/RSYNC_ENABLE=true/g' /etc/default/rsync
+
+EXPOSE  873 443
+CMD     /docker_start.sh "service rsync start; service nginx start; /usr/local/bin/docker-registry"
